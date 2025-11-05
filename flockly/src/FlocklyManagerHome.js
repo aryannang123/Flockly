@@ -78,7 +78,7 @@ export default function FlocklyManagerHome() {
               </span>
               {event.hasButton && (
                 <button className="bg-black text-white px-3 py-1 rounded-md font-semibold hover:bg-gray-900 transition z-10">
-                  Edit Event
+                  Manage Event
                 </button>
               )}
             </div>
