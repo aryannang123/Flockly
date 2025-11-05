@@ -1,9 +1,28 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Edit2 } from 'lucide-react';
+import { authService } from './services/api';
 
 export default function FlocklyHome() {
     const [showProfile, setShowProfile] = useState(false);
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        fetchUser();
+    }, []);
+
+    const fetchUser = async () => {
+        const response = await authService.getCurrentUser();
+        console.log('User data:', response); // Debug log
+        if (response.success && response.user) {
+            setUser(response.user);
+        }
+    };
+
+    const handleLogout = async () => {
+        await authService.logout();
+        window.location.href = '/';
+    };
 
     const events = [
         { name: 'Hackathon 2025', price: '₹299', percent: 80 },
@@ -32,9 +51,19 @@ export default function FlocklyHome() {
                     <div className="relative">
                         <button
                             onClick={() => setShowProfile(!showProfile)}
-                            className="p-2 rounded-full bg-white text-black hover:bg-gray-200 transition"
+                            className="rounded-full hover:opacity-80 transition"
                         >
-                            <User size={24} />
+                            {user?.profilePicture ? (
+                                <img 
+                                    src={user.profilePicture} 
+                                    alt="Profile" 
+                                    className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                                />
+                            ) : (
+                                <div className="p-2 rounded-full bg-white text-black">
+                                    <User size={24} />
+                                </div>
+                            )}
                         </button>
 
                         {/* Profile Card Dropdown */}
@@ -44,22 +73,33 @@ export default function FlocklyHome() {
                                     <div className="p-6">
                                         <div className="flex flex-col items-center space-y-4">
                                             <div className="relative">
-                                                <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-                                                    <User size={32} className="text-gray-600" />
-                                                </div>
+                                                {user?.profilePicture ? (
+                                                    <img 
+                                                        src={user.profilePicture} 
+                                                        alt="Profile" 
+                                                        className="w-16 h-16 rounded-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                                                        <User size={32} className="text-gray-600" />
+                                                    </div>
+                                                )}
                                                 <button className="absolute bottom-0 right-0 bg-black text-white p-1.5 rounded-full hover:bg-gray-800 transition">
                                                     <Edit2 size={14} />
                                                 </button>
                                             </div>
                                             <div className="text-center flex items-center gap-2">
-                                                <h3 className="font-bold text-lg">User Name</h3>
+                                                <h3 className="font-bold text-lg">{user?.name || 'User Name'}</h3>
                                                 <button className="text-gray-600 hover:text-black transition">
                                                     <Edit2 size={16} />
                                                 </button>
                                             </div>
-                                            <p className="text-sm text-gray-600">user@example.com</p>
+                                            <p className="text-sm text-gray-600">{user?.email || 'user@example.com'}</p>
 
-                                            <button className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition">
+                                            <button 
+                                                onClick={handleLogout}
+                                                className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+                                            >
                                                 Logout
                                             </button>
                                         </div>
