@@ -1,17 +1,27 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, User, Edit2 } from "lucide-react";
 import CreateEvent from "./components/CreateEvent";
+import { authService } from "./services/api";
 
 export default function FlocklyManagerHome() {
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [user, setUser] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch events on mount
   useEffect(() => {
+    fetchUser();
     fetchEvents();
   }, []);
+
+  const fetchUser = async () => {
+    const response = await authService.getCurrentUser();
+    if (response.success && response.user) {
+      setUser(response.user);
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -19,7 +29,6 @@ export default function FlocklyManagerHome() {
       const response = await fetch("http://localhost:5000/api/events/manager", {
         credentials: "include",
       });
-
       const data = await response.json();
 
       if (data.success) {
@@ -34,11 +43,15 @@ export default function FlocklyManagerHome() {
     }
   };
 
+  const handleLogout = async () => {
+    await authService.logout();
+    window.location.href = "/";
+  };
+
   const handleEventCreated = (newEvent) => {
     setEvents([newEvent, ...events]);
   };
 
-  // ✅ Prevent divide by 0
   const calculatePercentage = (event) => {
     if (!event.capacity || event.capacity === 0) return 0;
     return Math.round(((event.registeredCount || 0) / event.capacity) * 100);
@@ -46,6 +59,16 @@ export default function FlocklyManagerHome() {
 
   const isFull = (event) => {
     return event.registeredCount >= event.capacity;
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "M";
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
@@ -80,20 +103,90 @@ export default function FlocklyManagerHome() {
               </h2>
             </div>
 
-            {/* Navbar */}
-            <nav className="flex space-x-8 text-lg uppercase tracking-wide">
+            {/* Navbar with Profile */}
+            <nav className="flex items-center space-x-8 text-lg uppercase tracking-wide relative">
               <a href="#" className="hover:text-blue-600 transition">
                 Event History
               </a>
               <a href="#" className="hover:text-blue-600 transition">
                 Queries
               </a>
+
+              {/* Create Event Button */}
               <button
                 onClick={() => setShowCreateEvent(true)}
                 className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition flex items-center gap-2"
               >
                 <Plus size={18} /> Create Event
               </button>
+
+              {/* Profile Icon beside Create Event */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowProfile(!showProfile)}
+                  className="rounded-full hover:opacity-80 transition"
+                >
+                  {user?.profilePicture ? (
+                    <img
+                      src={user.profilePicture}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full object-cover border-2 border-black"
+                    />
+                  ) : (
+                    <div className="p-2 rounded-full bg-black text-white">
+                      <User size={24} />
+                    </div>
+                  )}
+                </button>
+
+                {/* Profile Dropdown */}
+                {showProfile && (
+                  <div className="absolute right-0 mt-2 w-64 z-50">
+                    <div className="rounded-xl border bg-white text-black shadow-lg">
+                      <div className="p-6">
+                        <div className="flex flex-col items-center space-y-4">
+                          <div className="relative">
+                            {user && user.profilePicture && user.profilePicture.length > 0 ? (
+                              <img
+                                src={user.profilePicture}
+                                alt={user.name || "Profile"}
+                                className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-2xl">
+                                {getInitials(user?.name)}
+                              </div>
+                            )}
+                            <button className="absolute bottom-0 right-0 bg-black text-white p-1.5 rounded-full hover:bg-gray-800 transition">
+                              <Edit2 size={14} />
+                            </button>
+                          </div>
+
+                          <div className="text-center flex items-center gap-2">
+                            <h3 className="font-bold text-lg">
+                              {user?.name || "Manager"}
+                            </h3>
+                            <button className="text-gray-600 hover:text-black transition">
+                              <Edit2 size={16} />
+                            </button>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {user?.email || "manager@flockly.com"}
+                          </p>
+
+                          <button
+                            onClick={handleLogout}
+                            className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+                          >
+                            Logout
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </nav>
           </div>
 
@@ -130,7 +223,7 @@ export default function FlocklyManagerHome() {
             </p>
           </div>
 
-          {/* ✅ Events List */}
+          {/* Events List */}
           <div className="flex flex-col gap-6 mt-12 w-full max-w-4xl px-6 mb-12">
             {loading ? (
               <div className="text-center py-8">
