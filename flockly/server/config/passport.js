@@ -14,11 +14,19 @@ module.exports = function(passport) {
         try {
           console.log('Google Profile:', profile); // Debug log
           
+          // Get userType from session (set during /auth/google call)
+          const userType = req.session.userType || 'user';
+          console.log('🟡 Login attempt with userType:', userType);
+          
           // Check if user already exists
           let user = await User.findOne({ googleId: profile.id });
 
           if (user) {
-            // User exists, return user
+            // ✅ FIX: Update existing user's userType every time they log in
+            console.log('🔄 User exists. Current type:', user.userType, '-> Updating to:', userType);
+            user.userType = userType;
+            await user.save();
+            console.log('✅ Updated existing user type to:', user.userType);
             return done(null, user);
           }
 
@@ -27,8 +35,6 @@ module.exports = function(passport) {
             ? profile.photos[0].value 
             : null;
           
-          // Get userType from session (set during /auth/google call)
-          const userType = req.session.userType || 'user';
           console.log('🟡 Creating user with userType:', userType);
           
           user = await User.create({
@@ -39,7 +45,7 @@ module.exports = function(passport) {
             userType: userType
           });
 
-          console.log('✅ Created user:', user); // Debug log
+          console.log('✅ Created new user:', user);
           done(null, user);
         } catch (error) {
           console.error('Error in Google Strategy:', error);
