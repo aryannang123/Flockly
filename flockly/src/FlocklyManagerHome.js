@@ -264,7 +264,7 @@ export default function FlocklyManagerHome() {
                         </span>
                         {!full && (
                           <button className="bg-black text-white px-3 py-1 rounded-md font-semibold hover:bg-gray-900 transition">
-                            Manage Event
+                            View Registrations
                           </button>
                         )}
                       </div>
