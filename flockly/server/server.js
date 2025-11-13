@@ -1,3 +1,4 @@
+// server/server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -19,6 +20,10 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
+app.use((req, res, next) => {
+  console.log(`[REQ] ${new Date().toISOString()} ${req.method} ${req.originalUrl}`);
+  next();
+});
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(
   session({
@@ -356,6 +361,28 @@ app.get('/api/registrations/event/:eventId', isAuthenticated, isManager, async (
     });
   }
 });
+
+/* ================== NEW: QUERIES ROUTES ================== */
+const queriesRouter = require('./routes/queries');
+
+// Mount queries routes:
+// - POST /api/queries        -> create a query (user)
+ // - GET  /api/queries       -> list queries (manager)
+ // - GET  /api/queries/:id   -> get a single query
+ // - POST /api/queries/:id/messages -> append message
+//
+// We'll protect the endpoints as follows (you can adjust):
+// - Creating a query requires the user to be authenticated (so req.user is available).
+// - Listing all queries (manager view) should be restricted to managers.
+// - Getting a single query and posting messages require authentication (user or manager).
+app.use('/api/queries', (req, res, next) => {
+  // For create and message posting we'll allow isAuthenticated
+  // For listing queries we want managers only - we'll route-check inside router or use separate mounting.
+  next();
+});
+app.use('/api/queries', queriesRouter);
+
+/* ====================================================== */
 
 // Start server
 const PORT = process.env.PORT || 5000;

@@ -1,7 +1,10 @@
+// src/App.js
 import { useState, useEffect } from 'react';
 import FlocklyLogin from './FlocklyLogin';
 import FlocklyManagerHome from './FlocklyManagerHome';
 import FlocklyUserHome from './FlocklyUserHome';
+import FlocklyQueryPage from './FlocklyQueryPage';
+import FlocklyManagerQueries from './FlocklyManagerQueries'; // manager queries page
 import ViewEvent from './components/ViewEvent';
 import RegisterEvent from './components/RegisterEvent';
 import { authService } from './services/api';
@@ -17,25 +20,31 @@ function App() {
     // Check if user is authenticated on mount
     checkAuth();
 
-    // Handle OAuth callback
+    // Handle OAuth callback (if your app uses it)
     const urlParams = new URLSearchParams(window.location.search);
     const authStatus = urlParams.get('auth');
     const userTypeParam = urlParams.get('userType');
 
     if (authStatus === 'success' && userTypeParam) {
       setUserType(userTypeParam);
-      // Clean URL
+      // Clean URL params
       window.history.replaceState({}, document.title, '/');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuth = async () => {
-    const response = await authService.getCurrentUser();
-    if (response.success && response.user) {
-      setUser(response.user);
-      setUserType(response.user.userType);
+    try {
+      const response = await authService.getCurrentUser();
+      if (response && response.success && response.user) {
+        setUser(response.user);
+        setUserType(response.user.userType);
+      }
+    } catch (err) {
+      console.error('Error checking auth:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleLogin = (isManager) => {
@@ -62,6 +71,7 @@ function App() {
     setSelectedEventId(null);
   };
 
+  // Show spinner while checking auth
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-black text-white">
@@ -72,20 +82,47 @@ function App() {
 
   // If viewing an event
   if (currentView === 'viewEvent' && selectedEventId) {
-    return <ViewEvent eventId={selectedEventId} onBack={handleBackToHome} onRegister={handleRegisterEvent} />;
+    return (
+      <ViewEvent
+        eventId={selectedEventId}
+        onBack={handleBackToHome}
+        onRegister={handleRegisterEvent}
+      />
+    );
   }
 
   // If registering for an event
   if (currentView === 'registerEvent' && selectedEventId) {
-    return <RegisterEvent eventId={selectedEventId} onBack={handleBackToHome} onSuccess={handleRegistrationSuccess} />;
+    return (
+      <RegisterEvent
+        eventId={selectedEventId}
+        onBack={handleBackToHome}
+        onSuccess={handleRegistrationSuccess}
+      />
+    );
   }
+
+  // Minimal path-based routing (no react-router)
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
+  const isQueryPath = pathname === '/query';
+  const isManagerQueriesPath = pathname === '/manager/queries';
 
   return (
     <div>
       {userType === 'manager' ? (
-        <FlocklyManagerHome />
+        // Manager: show manager queries page when on /manager/queries, else manager home
+        isManagerQueriesPath ? (
+          <FlocklyManagerQueries />
+        ) : (
+          <FlocklyManagerHome />
+        )
       ) : userType === 'user' ? (
-        <FlocklyUserHome onViewEvent={handleViewEvent} />
+        // User: show query page when on /query, else normal user home
+        isQueryPath ? (
+          <FlocklyQueryPage onViewEvent={handleViewEvent} />
+        ) : (
+          <FlocklyUserHome onViewEvent={handleViewEvent} />
+        )
       ) : (
         <FlocklyLogin onLogin={handleLogin} />
       )}
