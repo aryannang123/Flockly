@@ -227,8 +227,11 @@ Flockly features a distinctive **black and white theme** with:
 - Verify MongoDB connection is active
 
 ## 👥 Team
-- ARYAN NANGARATH-aryannangarath407@gmail.com
-- ESHWAR-eshwar10245@gmail.com
-- ARJUN BHAT-arjunbhats06@gmail.com
+
+- Aryan Nangarath
+- Eshwar
+- Arjun Bhat
+
+---
 
 **Happy Event Managing! 🎊**
