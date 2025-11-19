@@ -251,6 +251,7 @@ export default function FlocklyHome({ onViewEvent }) {
                 <div className="flex items-center gap-4 z-10">
                   <span className={`font-semibold text-lg ${full ? "text-white" : "text-black"}`}>{full ? "Full" : `₹${event.price}`}</span>
 
+                  <button onClick={() => handleViewEvent(event._id)} className="bg-white text-black px-4 py-2 rounded-md font-semibold hover:bg-gray-200 transition">View Event</button>
                   <button onClick={() => handleAskQuery(event)} className="bg-white text-black px-4 py-2 rounded-md font-semibold hover:bg-gray-200 transition">Ask Query</button>
                 </div>
               </div>
