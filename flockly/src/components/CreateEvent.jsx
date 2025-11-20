@@ -16,7 +16,7 @@ const Button = ({ children, onClick, type = "button", className = "", disabled =
     onClick={onClick}
     disabled={disabled}
     className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 focus:outline-none ${
-      disabled ? 'opacity-50 cursor-not-allowed' : ''
+      disabled ? "opacity-50 cursor-not-allowed" : ""
     } ${className}`}
   >
     {children}
@@ -27,7 +27,6 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
   const [formData, setFormData] = useState({
     eventName: "",
     description: "",
-    image: "",
     price: "",
     lastDate: "",
     eventDate: "",
@@ -37,7 +36,6 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
     contact: "",
   });
 
-  const [uploadedImage, setUploadedImage] = useState(null);
   const [customFields, setCustomFields] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [newField, setNewField] = useState({ name: "", type: "text" });
@@ -46,15 +44,6 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setUploadedImage(imageUrl);
-      setFormData({ ...formData, image: imageUrl });
-    }
   };
 
   const handleAddCustomField = () => {
@@ -75,17 +64,14 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
     setLoading(true);
 
     try {
-      // Prepare custom fields data
       const customFieldsData = {};
-      customFields.forEach(field => {
+      customFields.forEach((field) => {
         customFieldsData[field.name] = formData[field.name];
       });
 
-      // Prepare event data
       const eventData = {
         eventName: formData.eventName,
         description: formData.description,
-        image: formData.image,
         price: parseFloat(formData.price),
         lastDate: formData.lastDate,
         eventDate: formData.eventDate,
@@ -93,34 +79,30 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
         capacity: parseInt(formData.capacity),
         venue: formData.venue,
         contact: formData.contact,
-        customFields: customFieldsData
+        customFields: customFieldsData,
       };
 
-      const response = await fetch('http://localhost:5000/api/events', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5000/api/events", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
-        body: JSON.stringify(eventData)
+        credentials: "include",
+        body: JSON.stringify(eventData),
       });
 
       const data = await response.json();
 
       if (data.success) {
         alert("Event Created Successfully!");
-        if (onEventCreated) {
-          onEventCreated(data.event);
-        }
-        if (onCancel) {
-          onCancel();
-        }
+        if (onEventCreated) onEventCreated(data.event);
+        if (onCancel) onCancel();
       } else {
         alert(`Failed to create event: ${data.message}`);
       }
     } catch (error) {
-      console.error('Error creating event:', error);
-      alert('Failed to create event. Please try again.');
+      console.error("Error creating event:", error);
+      alert("Failed to create event. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -128,40 +110,17 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
 
   return (
     <div className="min-h-screen bg-white text-black flex flex-col items-center py-12 px-4 relative">
-      <h1 className="text-4xl font-bold mb-8 tracking-wide">
-        CREATE YOUR EVENT HERE
-      </h1>
+      <h1 className="text-4xl font-bold mb-8 tracking-wide">CREATE YOUR EVENT HERE</h1>
 
       <Card className="w-full max-w-6xl">
         <CardContent>
           <div className="flex flex-col md:flex-row gap-8 items-start">
-            {/* LEFT: Image upload, Venue, Contact */}
-            <div className="flex flex-col items-center w-full md:w-1/2">
-              <label className="block text-lg font-semibold mb-4">
-                Upload Event Image
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="w-full mb-4 text-black bg-white p-2 rounded-lg"
-              />
-              {uploadedImage ? (
-                <img
-                  src={uploadedImage}
-                  alt="Event Preview"
-                  className="rounded-xl shadow-lg w-full h-auto object-cover border-2 border-white mb-6"
-                />
-              ) : (
-                <div className="w-full h-64 bg-gray-700 flex items-center justify-center rounded-xl border-2 border-dashed border-gray-400 text-gray-300 mb-6">
-                  No Image Uploaded
-                </div>
-              )}
+            
+            {/* LEFT SECTION (Adjusted Layout — No Image Upload) */}
+            <div className="flex flex-col w-full md:w-1/2 gap-6">
 
-              <div className="w-full mb-4">
-                <label className="block text-lg font-semibold mb-2">
-                  Venue
-                </label>
+              <div>
+                <label className="block text-lg font-semibold mb-2">Venue</label>
                 <input
                   type="text"
                   name="venue"
@@ -173,10 +132,8 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
                 />
               </div>
 
-              <div className="w-full mb-4">
-                <label className="block text-lg font-semibold mb-2">
-                  Contact
-                </label>
+              <div>
+                <label className="block text-lg font-semibold mb-2">Contact</label>
                 <input
                   type="text"
                   name="contact"
@@ -195,17 +152,13 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
               >
                 + Add Custom Field
               </Button>
+
             </div>
 
-            {/* RIGHT: Event form fields */}
-            <form
-              onSubmit={handleSubmit}
-              className="flex flex-col gap-6 w-full md:w-1/2"
-            >
+            {/* RIGHT SECTION */}
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full md:w-1/2">
               <div>
-                <label className="block text-lg font-semibold mb-2">
-                  Event Name
-                </label>
+                <label className="block text-lg font-semibold mb-2">Event Name</label>
                 <input
                   type="text"
                   name="eventName"
@@ -218,9 +171,7 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
               </div>
 
               <div>
-                <label className="block text-lg font-semibold mb-2">
-                  Description
-                </label>
+                <label className="block text-lg font-semibold mb-2">Description</label>
                 <textarea
                   name="description"
                   value={formData.description}
@@ -234,9 +185,7 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-lg font-semibold mb-2">
-                    Price
-                  </label>
+                  <label className="block text-lg font-semibold mb-2">Price</label>
                   <input
                     type="number"
                     name="price"
@@ -249,9 +198,7 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
                 </div>
 
                 <div>
-                  <label className="block text-lg font-semibold mb-2">
-                    Event Date
-                  </label>
+                  <label className="block text-lg font-semibold mb-2">Event Date</label>
                   <input
                     type="date"
                     name="eventDate"
@@ -263,9 +210,7 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
                 </div>
 
                 <div>
-                  <label className="block text-lg font-semibold mb-2">
-                    Event Time
-                  </label>
+                  <label className="block text-lg font-semibold mb-2">Event Time</label>
                   <input
                     type="time"
                     name="eventTime"
@@ -279,9 +224,7 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-lg font-semibold mb-2">
-                    Last Date
-                  </label>
+                  <label className="block text-lg font-semibold mb-2">Last Date</label>
                   <input
                     type="date"
                     name="lastDate"
@@ -293,9 +236,7 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
                 </div>
 
                 <div>
-                  <label className="block text-lg font-semibold mb-2">
-                    Capacity
-                  </label>
+                  <label className="block text-lg font-semibold mb-2">Capacity</label>
                   <input
                     type="number"
                     name="capacity"
@@ -310,9 +251,7 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
 
               {customFields.map((field, index) => (
                 <div key={index}>
-                  <label className="block text-lg font-semibold mb-2">
-                    {field.name}
-                  </label>
+                  <label className="block text-lg font-semibold mb-2">{field.name}</label>
                   <input
                     type={field.type}
                     name={field.name}
@@ -329,18 +268,15 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
                 disabled={loading}
                 className="mt-6 w-full bg-white text-black font-bold hover:bg-gray-200"
               >
-                {loading ? 'Creating Event...' : 'Create Event'}
+                {loading ? "Creating Event..." : "Create Event"}
               </Button>
 
               <Button
                 type="button"
                 onClick={() => {
                   if (window.confirm("Are you sure you want to cancel?")) {
-                    if (typeof onCancel === "function") {
-                      onCancel();
-                    } else {
-                      window.history.back();
-                    }
+                    if (typeof onCancel === "function") onCancel();
+                    else window.history.back();
                   }
                 }}
                 className="mt-4 w-full bg-red-500 text-black font-bold hover:bg-red-600"
@@ -356,13 +292,12 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
         <div className="absolute inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
           <div className="bg-white text-black rounded-2xl p-6 w-96 shadow-xl">
             <h2 className="text-xl font-bold mb-4">Add Custom Field</h2>
+
             <label className="block mb-2 font-semibold">Field Name</label>
             <input
               type="text"
               value={newField.name}
-              onChange={(e) =>
-                setNewField({ ...newField, name: e.target.value })
-              }
+              onChange={(e) => setNewField({ ...newField, name: e.target.value })}
               placeholder="Enter field name"
               className="w-full p-2 mb-4 border rounded-lg"
             />
@@ -370,9 +305,7 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
             <label className="block mb-2 font-semibold">Field Type</label>
             <select
               value={newField.type}
-              onChange={(e) =>
-                setNewField({ ...newField, type: e.target.value })
-              }
+              onChange={(e) => setNewField({ ...newField, type: e.target.value })}
               className="w-full p-2 mb-4 border rounded-lg"
             >
               <option value="text">Text</option>
@@ -383,12 +316,10 @@ export default function CreateEvent({ onCancel, onEventCreated }) {
             </select>
 
             <div className="flex justify-between">
-              <Button
-                onClick={handleCreateCustomField}
-                className="bg-black text-white hover:bg-gray-800"
-              >
+              <Button onClick={handleCreateCustomField} className="bg-black text-white hover:bg-gray-800">
                 Add
               </Button>
+
               <Button
                 onClick={() => setShowPopup(false)}
                 className="bg-red-500 text-black hover:bg-red-600"
