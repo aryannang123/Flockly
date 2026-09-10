@@ -1,4 +1,4 @@
-# 🎉 Flockly - Event Management Platform
+# Flockly - Event Management Platform
 
 A modern, full-stack event management platform that connects event managers with attendees. Built with React, Node.js, Express, and MongoDB.
 
